@@ -12,6 +12,7 @@ import { initializeBridgeRuntime, shutdownBridgeRuntime } from '../bridge/runtim
 import {
   SETTING_ACCEPT_WRITE_OPERATIONS,
   SETTING_ACCEPT_REPLACE_OPERATION,
+  SETTING_ACCEPT_DELETE_OPERATION,
   SETTING_AUTO_TAG_ENABLED,
   SETTING_AUTO_TAG_REM_ID,
   SETTING_JOURNAL_PREFIX,
@@ -20,6 +21,7 @@ import {
   SETTING_DEFAULT_PARENT,
   DEFAULT_ACCEPT_WRITE_OPERATIONS,
   DEFAULT_ACCEPT_REPLACE_OPERATION,
+  DEFAULT_ACCEPT_DELETE_OPERATION,
   DEFAULT_AUTO_TAG_REM_ID,
   DEFAULT_JOURNAL_PREFIX,
   DEFAULT_WS_URL,
@@ -41,6 +43,14 @@ export async function activateAutomationBridge(plugin: ReactRNPlugin) {
     title: 'Accept replace operation',
     description: 'Allow update replace operations that overwrite direct child bullets',
     defaultValue: DEFAULT_ACCEPT_REPLACE_OPERATION,
+  });
+
+  await plugin.settings.registerBooleanSetting({
+    id: SETTING_ACCEPT_DELETE_OPERATION,
+    title: 'Accept delete operation',
+    description:
+      'Allow bridge consumers to permanently delete notes together with all of their descendants (no undo)',
+    defaultValue: DEFAULT_ACCEPT_DELETE_OPERATION,
   });
 
   await plugin.settings.registerBooleanSetting({

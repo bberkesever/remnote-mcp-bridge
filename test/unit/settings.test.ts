@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest';
 import {
   SETTING_ACCEPT_WRITE_OPERATIONS,
   SETTING_ACCEPT_REPLACE_OPERATION,
+  SETTING_ACCEPT_DELETE_OPERATION,
   SETTING_AUTO_TAG_ENABLED,
   SETTING_AUTO_TAG_REM_ID,
   SETTING_JOURNAL_PREFIX,
@@ -13,6 +14,7 @@ import {
   SETTING_DEFAULT_PARENT,
   DEFAULT_ACCEPT_WRITE_OPERATIONS,
   DEFAULT_ACCEPT_REPLACE_OPERATION,
+  DEFAULT_ACCEPT_DELETE_OPERATION,
   DEFAULT_AUTO_TAG_REM_ID,
   DEFAULT_JOURNAL_PREFIX,
   DEFAULT_WS_URL,
@@ -28,6 +30,7 @@ describe('Settings', () => {
       const ids = [
         SETTING_ACCEPT_WRITE_OPERATIONS,
         SETTING_ACCEPT_REPLACE_OPERATION,
+        SETTING_ACCEPT_DELETE_OPERATION,
         SETTING_AUTO_TAG_ENABLED,
         SETTING_AUTO_TAG_REM_ID,
         SETTING_JOURNAL_PREFIX,
@@ -43,6 +46,7 @@ describe('Settings', () => {
     it('should have correct setting ID values', () => {
       expect(SETTING_ACCEPT_WRITE_OPERATIONS).toBe('automation-bridge-accept-write-operations');
       expect(SETTING_ACCEPT_REPLACE_OPERATION).toBe('automation-bridge-accept-replace-operation');
+      expect(SETTING_ACCEPT_DELETE_OPERATION).toBe('automation-bridge-accept-delete-operation');
       expect(SETTING_AUTO_TAG_ENABLED).toBe('automation-bridge-auto-tag-enabled');
       expect(SETTING_AUTO_TAG_REM_ID).toBe('automation-bridge-auto-tag-rem-id');
       expect(SETTING_JOURNAL_PREFIX).toBe('automation-bridge-journal-prefix');
@@ -56,6 +60,7 @@ describe('Settings', () => {
     it('should have correct default values', () => {
       expect(DEFAULT_ACCEPT_WRITE_OPERATIONS).toBe(true);
       expect(DEFAULT_ACCEPT_REPLACE_OPERATION).toBe(false);
+      expect(DEFAULT_ACCEPT_DELETE_OPERATION).toBe(false);
       expect(DEFAULT_AUTO_TAG_REM_ID).toBe('');
       expect(DEFAULT_JOURNAL_PREFIX).toBe('');
       expect(DEFAULT_WS_URL).toBe('ws://127.0.0.1:3002');
@@ -75,6 +80,7 @@ describe('Settings', () => {
       const settings: AutomationBridgeSettings = {
         acceptWriteOperations: true,
         acceptReplaceOperation: false,
+        acceptDeleteOperation: false,
         autoTagEnabled: true,
         autoTagRemId: '',
         journalPrefix: '',
@@ -97,6 +103,7 @@ describe('Settings', () => {
       const settings: AutomationBridgeSettings = {
         acceptWriteOperations: false,
         acceptReplaceOperation: false,
+        acceptDeleteOperation: false,
         autoTagEnabled: false,
         autoTagRemId: '',
         journalPrefix: '',
@@ -107,6 +114,7 @@ describe('Settings', () => {
 
       expect(settings).toHaveProperty('acceptWriteOperations');
       expect(settings).toHaveProperty('acceptReplaceOperation');
+      expect(settings).toHaveProperty('acceptDeleteOperation');
       expect(settings).toHaveProperty('autoTagEnabled');
       expect(settings).toHaveProperty('autoTagRemId');
       expect(settings).toHaveProperty('journalPrefix');
@@ -119,6 +127,7 @@ describe('Settings', () => {
       const settings: AutomationBridgeSettings = {
         acceptWriteOperations: false,
         acceptReplaceOperation: true,
+        acceptDeleteOperation: true,
         autoTagEnabled: false,
         autoTagRemId: 'custom_tag_rem_id',
         journalPrefix: '[AI]',
@@ -141,6 +150,7 @@ describe('Settings', () => {
       expect(getDefaultAutomationBridgeSettings()).toEqual({
         acceptWriteOperations: true,
         acceptReplaceOperation: false,
+        acceptDeleteOperation: false,
         autoTagEnabled: true,
         autoTagRemId: '',
         journalPrefix: '',
@@ -154,6 +164,7 @@ describe('Settings', () => {
       const plugin = new MockRemNotePlugin();
       plugin.setTestSetting(SETTING_ACCEPT_WRITE_OPERATIONS, false);
       plugin.setTestSetting(SETTING_ACCEPT_REPLACE_OPERATION, true);
+      plugin.setTestSetting(SETTING_ACCEPT_DELETE_OPERATION, true);
       plugin.setTestSetting(SETTING_AUTO_TAG_ENABLED, false);
       plugin.setTestSetting(SETTING_AUTO_TAG_REM_ID, 'robot-tag-rem-id');
       plugin.setTestSetting(SETTING_JOURNAL_PREFIX, '[AI]');
@@ -166,6 +177,7 @@ describe('Settings', () => {
       expect(settings).toEqual({
         acceptWriteOperations: false,
         acceptReplaceOperation: true,
+        acceptDeleteOperation: true,
         autoTagEnabled: false,
         autoTagRemId: 'robot-tag-rem-id',
         journalPrefix: '[AI]',

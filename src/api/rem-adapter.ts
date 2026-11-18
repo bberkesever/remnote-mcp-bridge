@@ -13,6 +13,7 @@ import {
 import {
   AutomationBridgeSettings,
   DEFAULT_ACCEPT_REPLACE_OPERATION,
+  DEFAULT_ACCEPT_DELETE_OPERATION,
   DEFAULT_ACCEPT_WRITE_OPERATIONS,
   DEFAULT_AUTO_TAG_REM_ID,
   DEFAULT_JOURNAL_PREFIX,
@@ -528,6 +529,7 @@ export class RemAdapter {
     this.settings = {
       acceptWriteOperations: DEFAULT_ACCEPT_WRITE_OPERATIONS,
       acceptReplaceOperation: DEFAULT_ACCEPT_REPLACE_OPERATION,
+      acceptDeleteOperation: DEFAULT_ACCEPT_DELETE_OPERATION,
       autoTagEnabled: true,
       autoTagRemId: DEFAULT_AUTO_TAG_REM_ID,
       journalPrefix: DEFAULT_JOURNAL_PREFIX,
@@ -3434,6 +3436,10 @@ export class RemAdapter {
       throw new Error('Write operations are disabled in Automation Bridge settings');
     }
 
+    if (!this.settings.acceptDeleteOperation) {
+      throw new Error('Delete operation is disabled in Automation Bridge settings');
+    }
+
     const remId = this.requireString(params.remId, 'remId');
     const dryRun = params.dryRun !== false;
 
@@ -3960,6 +3966,7 @@ export class RemAdapter {
     knowledgeBaseId?: string;
     acceptWriteOperations: boolean;
     acceptReplaceOperation: boolean;
+    acceptDeleteOperation: boolean;
   }> {
     return {
       connected: true,
@@ -3967,6 +3974,7 @@ export class RemAdapter {
       knowledgeBaseId: undefined,
       acceptWriteOperations: this.settings.acceptWriteOperations,
       acceptReplaceOperation: this.settings.acceptReplaceOperation,
+      acceptDeleteOperation: this.settings.acceptDeleteOperation,
     };
   }
 }

@@ -27,6 +27,7 @@ import type { ReactRNPlugin } from '@remnote/plugin-sdk';
 import {
   SETTING_ACCEPT_WRITE_OPERATIONS,
   SETTING_ACCEPT_REPLACE_OPERATION,
+  SETTING_ACCEPT_DELETE_OPERATION,
   SETTING_AUTO_TAG_ENABLED,
   SETTING_AUTO_TAG_REM_ID,
   SETTING_JOURNAL_PREFIX,
@@ -68,13 +69,16 @@ describe('Automation Bridge activation', () => {
   it('registers settings, initializes the runtime, and registers the sidebar widget', async () => {
     await activateAutomationBridge(mockPlugin as ReactRNPlugin);
 
-    expect(registerBooleanSettingSpy).toHaveBeenCalledTimes(4);
+    expect(registerBooleanSettingSpy).toHaveBeenCalledTimes(5);
     expect(registerStringSettingSpy).toHaveBeenCalledTimes(4);
     expect(registerBooleanSettingSpy).toHaveBeenCalledWith(
       expect.objectContaining({ id: SETTING_ACCEPT_WRITE_OPERATIONS })
     );
     expect(registerBooleanSettingSpy).toHaveBeenCalledWith(
       expect.objectContaining({ id: SETTING_ACCEPT_REPLACE_OPERATION })
+    );
+    expect(registerBooleanSettingSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ id: SETTING_ACCEPT_DELETE_OPERATION })
     );
     expect(registerBooleanSettingSpy).toHaveBeenCalledWith(
       expect.objectContaining({ id: SETTING_AUTO_TAG_ENABLED })

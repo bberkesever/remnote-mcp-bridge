@@ -13,6 +13,7 @@ import { useCompatibleTracker as useTracker } from './tracker-compat';
 import {
   SETTING_ACCEPT_WRITE_OPERATIONS,
   SETTING_ACCEPT_REPLACE_OPERATION,
+  SETTING_ACCEPT_DELETE_OPERATION,
   SETTING_AUTO_TAG_ENABLED,
   SETTING_AUTO_TAG_REM_ID,
   SETTING_JOURNAL_PREFIX,
@@ -235,6 +236,10 @@ export function AutomationBridgeWidget() {
     () => plugin.settings.getSetting<boolean>(SETTING_ACCEPT_REPLACE_OPERATION),
     []
   );
+  const acceptDeleteOperation = useTracker(
+    () => plugin.settings.getSetting<boolean>(SETTING_ACCEPT_DELETE_OPERATION),
+    []
+  );
   const autoTagEnabled = useTracker(
     () => plugin.settings.getSetting<boolean>(SETTING_AUTO_TAG_ENABLED),
     []
@@ -323,6 +328,7 @@ export function AutomationBridgeWidget() {
     if (
       acceptWriteOperations === undefined ||
       acceptReplaceOperation === undefined ||
+      acceptDeleteOperation === undefined ||
       autoTagEnabled === undefined ||
       autoTagRemId === undefined ||
       journalPrefix === undefined ||
@@ -336,6 +342,7 @@ export function AutomationBridgeWidget() {
     const settings: AutomationBridgeSettings = {
       acceptWriteOperations,
       acceptReplaceOperation,
+      acceptDeleteOperation,
       autoTagEnabled,
       autoTagRemId,
       journalPrefix,
@@ -362,6 +369,7 @@ export function AutomationBridgeWidget() {
     plugin,
     acceptWriteOperations,
     acceptReplaceOperation,
+    acceptDeleteOperation,
     autoTagEnabled,
     autoTagRemId,
     journalPrefix,

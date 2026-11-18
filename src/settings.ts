@@ -7,6 +7,7 @@ import type { ReactRNPlugin } from '@remnote/plugin-sdk';
 // Setting IDs
 export const SETTING_ACCEPT_WRITE_OPERATIONS = 'automation-bridge-accept-write-operations';
 export const SETTING_ACCEPT_REPLACE_OPERATION = 'automation-bridge-accept-replace-operation';
+export const SETTING_ACCEPT_DELETE_OPERATION = 'automation-bridge-accept-delete-operation';
 export const SETTING_AUTO_TAG_ENABLED = 'automation-bridge-auto-tag-enabled';
 export const SETTING_AUTO_TAG_REM_ID = 'automation-bridge-auto-tag-rem-id';
 export const SETTING_JOURNAL_PREFIX = 'automation-bridge-journal-prefix';
@@ -17,6 +18,7 @@ export const SETTING_DEFAULT_PARENT = 'automation-bridge-default-parent';
 // Default values
 export const DEFAULT_ACCEPT_WRITE_OPERATIONS = true;
 export const DEFAULT_ACCEPT_REPLACE_OPERATION = false;
+export const DEFAULT_ACCEPT_DELETE_OPERATION = false;
 export const DEFAULT_AUTO_TAG_REM_ID = '';
 export const DEFAULT_JOURNAL_PREFIX = '';
 export const DEFAULT_WS_URL = 'ws://127.0.0.1:3002';
@@ -25,6 +27,7 @@ export const DEFAULT_WS_URL = 'ws://127.0.0.1:3002';
 export interface AutomationBridgeSettings {
   acceptWriteOperations: boolean;
   acceptReplaceOperation: boolean;
+  acceptDeleteOperation: boolean;
   autoTagEnabled: boolean;
   autoTagRemId: string;
   journalPrefix: string;
@@ -37,6 +40,7 @@ export function getDefaultAutomationBridgeSettings(): AutomationBridgeSettings {
   return {
     acceptWriteOperations: DEFAULT_ACCEPT_WRITE_OPERATIONS,
     acceptReplaceOperation: DEFAULT_ACCEPT_REPLACE_OPERATION,
+    acceptDeleteOperation: DEFAULT_ACCEPT_DELETE_OPERATION,
     autoTagEnabled: true,
     autoTagRemId: DEFAULT_AUTO_TAG_REM_ID,
     journalPrefix: DEFAULT_JOURNAL_PREFIX,
@@ -54,6 +58,7 @@ export async function readAutomationBridgeSettings(
   const [
     acceptWriteOperations,
     acceptReplaceOperation,
+    acceptDeleteOperation,
     autoTagEnabled,
     autoTagRemId,
     journalPrefix,
@@ -63,6 +68,7 @@ export async function readAutomationBridgeSettings(
   ] = await Promise.all([
     plugin.settings.getSetting<boolean>(SETTING_ACCEPT_WRITE_OPERATIONS),
     plugin.settings.getSetting<boolean>(SETTING_ACCEPT_REPLACE_OPERATION),
+    plugin.settings.getSetting<boolean>(SETTING_ACCEPT_DELETE_OPERATION),
     plugin.settings.getSetting<boolean>(SETTING_AUTO_TAG_ENABLED),
     plugin.settings.getSetting<string>(SETTING_AUTO_TAG_REM_ID),
     plugin.settings.getSetting<string>(SETTING_JOURNAL_PREFIX),
@@ -80,6 +86,10 @@ export async function readAutomationBridgeSettings(
       typeof acceptReplaceOperation === 'boolean'
         ? acceptReplaceOperation
         : defaults.acceptReplaceOperation,
+    acceptDeleteOperation:
+      typeof acceptDeleteOperation === 'boolean'
+        ? acceptDeleteOperation
+        : defaults.acceptDeleteOperation,
     autoTagEnabled: typeof autoTagEnabled === 'boolean' ? autoTagEnabled : defaults.autoTagEnabled,
     autoTagRemId: typeof autoTagRemId === 'string' ? autoTagRemId : defaults.autoTagRemId,
     journalPrefix: typeof journalPrefix === 'string' ? journalPrefix : defaults.journalPrefix,

@@ -2681,6 +2681,20 @@ describe('RemAdapter', () => {
   });
 
   describe('deleteNote', () => {
+    beforeEach(() => {
+      adapter.updateSettings({ acceptDeleteOperation: true });
+    });
+
+    it('should reject delete when the delete operation setting is off (default)', async () => {
+      plugin.addTestRem('delete_gate_off', 'Gate Off');
+      adapter.updateSettings({ acceptDeleteOperation: false });
+
+      await expect(adapter.deleteNote({ remId: 'delete_gate_off', dryRun: false })).rejects.toThrow(
+        'Delete operation is disabled in Automation Bridge settings'
+      );
+      expect(await plugin.rem.findOne('delete_gate_off')).toBeDefined();
+    });
+
     it('should reject delete when write operations are disabled', async () => {
       plugin.addTestRem('delete_disabled', 'Blocked');
       adapter.updateSettings({ acceptWriteOperations: false });
