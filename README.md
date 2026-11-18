@@ -1,4 +1,10 @@
-# RemNote Automation Bridge
+# RemNote Automation Bridge (bberkesever fork)
+
+> **This is a fork.** It is based on [robert7/remnote-mcp-bridge](https://github.com/robert7/remnote-mcp-bridge)
+> (MIT) by Robert Spiegel, with additions by [bberkesever](https://github.com/bberkesever), notably the guarded
+> `delete_note` action (`dryRun` by default, `expectedDescendantCount` confirmation). Use it together with the matching
+> fork of the server, [bberkesever/remnote-mcp-server](https://github.com/bberkesever/remnote-mcp-server). The bridge
+> **id** differs from the original, so both cannot be installed at the same time.
 
 A RemNote plugin that exposes your RemNote knowledge base to external automation clients over a local WebSocket
 bridge. It is the shared RemNote endpoint for the `remnote-mcp-server` package:
