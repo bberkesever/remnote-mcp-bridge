@@ -478,6 +478,21 @@ class BridgeRuntimeController implements BridgeRuntime {
         return result;
       }
 
+      case 'delete_note': {
+        const result = await this.adapter.deleteNote({
+          remId: payload.remId as string,
+          dryRun: payload.dryRun as boolean | undefined,
+          expectedTitle: payload.expectedTitle as string | undefined,
+          expectedDescendantCount: payload.expectedDescendantCount as number | undefined,
+        });
+        if (result.deleted) {
+          this.stats = { ...this.stats, updated: this.stats.updated + 1 };
+          this.addHistoryEntry('update', [`Deleted ${result.title}`], [result.remId]);
+          this.emit();
+        }
+        return result;
+      }
+
       case 'replace_children': {
         const result = await this.adapter.replaceChildren({
           parentRemId: payload.parentRemId as string,

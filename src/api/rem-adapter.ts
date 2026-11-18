@@ -179,6 +179,13 @@ export interface MoveNoteParams {
   ancestorDepth?: number;
 }
 
+export interface DeleteNoteParams {
+  remId: string;
+  dryRun?: boolean;
+  expectedTitle?: string;
+  expectedDescendantCount?: number;
+}
+
 export interface ReadTableParams {
   tableRemId?: string;
   tableTitle?: string;
@@ -321,6 +328,18 @@ export interface MoveNoteResult {
   ancestorsAfterTruncated?: boolean;
 }
 
+export interface DeleteNoteResult {
+  remId: string;
+  title: string;
+  dryRun: boolean;
+  deleted: boolean;
+  parentRemId?: string;
+  parentTitle?: string;
+  childCount: number;
+  descendantCount: number;
+  descendantCountTruncated?: boolean;
+}
+
 export interface SetDocumentStatusResult {
   remId: string;
   title: string;
@@ -370,6 +389,7 @@ const MAX_DESCENDANT_DEPTH_CHECK = 100;
 
 /** Default max content length for search markdown rendering. */
 const DEFAULT_SEARCH_MAX_CONTENT_LENGTH = 3000;
+const DELETE_DESCENDANT_COUNT_LIMIT = 5000;
 
 /** Default max content length for read markdown rendering. */
 const DEFAULT_READ_MAX_CONTENT_LENGTH = 100000;
@@ -3385,6 +3405,92 @@ export class RemAdapter {
       ...(dryRunAncestorsAfter.ancestors ? { ancestorsAfter: dryRunAncestorsAfter.ancestors } : {}),
       ...(dryRunAncestorsAfter.ancestorsTruncated ? { ancestorsAfterTruncated: true } : {}),
     };
+  }
+
+  private async countDescendants(
+    rem: PluginRem
+  ): Promise<{ childCount: number; descendantCount: number; truncated: boolean }> {
+    const children = await rem.getChildrenRem();
+    let descendantCount = children.length;
+    let truncated = false;
+    const queue: PluginRem[] = [...children];
+
+    while (queue.length > 0) {
+      const current = queue.shift() as PluginRem;
+      const grandchildren = await current.getChildrenRem();
+      descendantCount += grandchildren.length;
+      queue.push(...grandchildren);
+      if (descendantCount >= DELETE_DESCENDANT_COUNT_LIMIT) {
+        truncated = true;
+        break;
+      }
+    }
+
+    return { childCount: children.length, descendantCount, truncated };
+  }
+
+  async deleteNote(params: DeleteNoteParams): Promise<DeleteNoteResult> {
+    if (!this.settings.acceptWriteOperations) {
+      throw new Error('Write operations are disabled in Automation Bridge settings');
+    }
+
+    const remId = this.requireString(params.remId, 'remId');
+    const dryRun = params.dryRun !== false;
+
+    const rem = await this.plugin.rem.findOne(remId);
+    if (!rem) {
+      throw new Error(`Note not found: ${remId}`);
+    }
+
+    const [{ title }, parentContext, counts] = await Promise.all([
+      this.getTitleAndDetail(rem),
+      this.getParentContext(rem),
+      this.countDescendants(rem),
+    ]);
+
+    if (params.expectedTitle !== undefined && params.expectedTitle !== title) {
+      throw new Error(
+        `Current title does not match expectedTitle: expected "${params.expectedTitle}", got "${title}"`
+      );
+    }
+
+    const result: DeleteNoteResult = {
+      remId,
+      title,
+      dryRun,
+      deleted: false,
+      ...(parentContext.parentRemId ? { parentRemId: parentContext.parentRemId } : {}),
+      ...(parentContext.parentTitle ? { parentTitle: parentContext.parentTitle } : {}),
+      childCount: counts.childCount,
+      descendantCount: counts.descendantCount,
+      ...(counts.truncated ? { descendantCountTruncated: true } : {}),
+    };
+
+    if (dryRun) {
+      return result;
+    }
+
+    if (counts.descendantCount > 0) {
+      if (params.expectedDescendantCount === undefined) {
+        throw new Error(
+          `This note has ${counts.descendantCount} descendant note(s) that will be deleted too. ` +
+            'Run with dryRun first and pass expectedDescendantCount to confirm.'
+        );
+      }
+      if (counts.truncated || params.expectedDescendantCount !== counts.descendantCount) {
+        throw new Error(
+          `Descendant count does not match expectedDescendantCount: expected ${params.expectedDescendantCount}, got ${counts.descendantCount}${
+            counts.truncated ? '+' : ''
+          }`
+        );
+      }
+    }
+
+    await this.runInTransaction(async () => {
+      await rem.remove();
+    });
+
+    return { ...result, deleted: true };
   }
 
   /**

@@ -2680,6 +2680,112 @@ describe('RemAdapter', () => {
     });
   });
 
+  describe('deleteNote', () => {
+    it('should reject delete when write operations are disabled', async () => {
+      plugin.addTestRem('delete_disabled', 'Blocked');
+      adapter.updateSettings({ acceptWriteOperations: false });
+
+      await expect(adapter.deleteNote({ remId: 'delete_disabled', dryRun: false })).rejects.toThrow(
+        'Write operations are disabled in Automation Bridge settings'
+      );
+    });
+
+    it('should throw when the note does not exist', async () => {
+      await expect(adapter.deleteNote({ remId: 'delete_missing' })).rejects.toThrow(
+        'Note not found: delete_missing'
+      );
+    });
+
+    it('should dry-run by default and report descendant counts without deleting', async () => {
+      const parent = plugin.addTestRem('delete_dry_parent', 'Dry Parent');
+      const target = plugin.addTestRem('delete_dry_target', 'Dry Target');
+      const child = plugin.addTestRem('delete_dry_child', 'Dry Child');
+      const grandchild = plugin.addTestRem('delete_dry_grandchild', 'Dry Grandchild');
+      await target.setParent(parent);
+      await child.setParent(target);
+      await grandchild.setParent(child);
+
+      const result = await adapter.deleteNote({ remId: 'delete_dry_target' });
+
+      expect(result.dryRun).toBe(true);
+      expect(result.deleted).toBe(false);
+      expect(result.title).toBe('Dry Target');
+      expect(result.parentRemId).toBe('delete_dry_parent');
+      expect(result.childCount).toBe(1);
+      expect(result.descendantCount).toBe(2);
+      expect((await target.getParentRem())?._id).toBe('delete_dry_parent');
+      expect(await target.getChildrenRem()).toHaveLength(1);
+    });
+
+    it('should delete a leaf note without needing expectedDescendantCount', async () => {
+      const parent = plugin.addTestRem('delete_leaf_parent', 'Leaf Parent');
+      const leaf = plugin.addTestRem('delete_leaf', 'Leaf');
+      await leaf.setParent(parent);
+
+      const result = await adapter.deleteNote({ remId: 'delete_leaf', dryRun: false });
+
+      expect(result.deleted).toBe(true);
+      expect(result.descendantCount).toBe(0);
+      expect(await parent.getChildrenRem()).toHaveLength(0);
+    });
+
+    it('should refuse to delete a note with descendants without expectedDescendantCount', async () => {
+      const target = plugin.addTestRem('delete_guard_target', 'Guard Target');
+      const child = plugin.addTestRem('delete_guard_child', 'Guard Child');
+      await child.setParent(target);
+
+      await expect(
+        adapter.deleteNote({ remId: 'delete_guard_target', dryRun: false })
+      ).rejects.toThrow('Run with dryRun first and pass expectedDescendantCount');
+      expect(await target.getChildrenRem()).toHaveLength(1);
+    });
+
+    it('should refuse when expectedDescendantCount does not match', async () => {
+      const target = plugin.addTestRem('delete_mismatch_target', 'Mismatch Target');
+      const child = plugin.addTestRem('delete_mismatch_child', 'Mismatch Child');
+      await child.setParent(target);
+
+      await expect(
+        adapter.deleteNote({
+          remId: 'delete_mismatch_target',
+          dryRun: false,
+          expectedDescendantCount: 5,
+        })
+      ).rejects.toThrow('Descendant count does not match expectedDescendantCount');
+      expect(await target.getChildrenRem()).toHaveLength(1);
+    });
+
+    it('should delete a note with descendants when expectedDescendantCount matches', async () => {
+      const parent = plugin.addTestRem('delete_ok_parent', 'OK Parent');
+      const target = plugin.addTestRem('delete_ok_target', 'OK Target');
+      const child = plugin.addTestRem('delete_ok_child', 'OK Child');
+      await target.setParent(parent);
+      await child.setParent(target);
+
+      const result = await adapter.deleteNote({
+        remId: 'delete_ok_target',
+        dryRun: false,
+        expectedDescendantCount: 1,
+      });
+
+      expect(result.deleted).toBe(true);
+      expect(result.descendantCount).toBe(1);
+      expect(await parent.getChildrenRem()).toHaveLength(0);
+    });
+
+    it('should refuse when expectedTitle does not match', async () => {
+      plugin.addTestRem('delete_title_target', 'Real Title');
+
+      await expect(
+        adapter.deleteNote({
+          remId: 'delete_title_target',
+          dryRun: false,
+          expectedTitle: 'Other Title',
+        })
+      ).rejects.toThrow('Current title does not match expectedTitle');
+    });
+  });
+
   describe('insertChildren', () => {
     it('should insert children as first children without recreating existing children', async () => {
       const parent = plugin.addTestRem('insert_first_test', 'Parent');
